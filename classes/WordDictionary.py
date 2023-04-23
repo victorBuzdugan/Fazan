@@ -30,8 +30,6 @@ class WordDictionary:
 
         # ! remove after testing
         
-
-        
         
     # region: xml related methods
     def __parse_xml(self, path: Path) -> None:
