@@ -11,9 +11,12 @@ class WordDictionary:
     __path: Path
     __tree: ET
     __root: ET.Element
+    words: set[str]
     __words_start: set[str]
     __words_end: set[str]
-    words: set[str]
+    endgame_words: set[str]
+    __words_to_add: list[str]
+    __words_to_remove: list[str]
 
     def __init__(self, path: Path) -> None:
         """ Create a dictionary with filtered words imported from file path. 
@@ -25,12 +28,11 @@ class WordDictionary:
         self.words = set()
         self.__words_start = set()
         self.__words_end = set()
+        self.__words_to_add = []
+        self.__words_to_remove = []
         self.__parse_xml(self.__path)
-        self.__parse_words()
+        self.__build_dictionary()
 
-        # ! remove after testing
-        
-        
     # region: xml related methods
     def __parse_xml(self, path: Path) -> None:
         """ Parse the xml file. """
@@ -39,57 +41,36 @@ class WordDictionary:
         self.__tree = ET.parse(path)
         self.__root = self.__tree.getroot()
     
-    def __save_xml(self):
+    def save_xml(self):
         """ Write changes to xml file """
 
-        print("... Saving dictionary to file ...")
-        # Re-format the xml file
-        ET.indent(self.__root)
-        
-        self.__tree.write(self.__path, "UTF-8", True)
+        if self.__words_to_remove or self.__words_to_add:
+            print("... Saving dictionary to file ...")
+            # Re-format the xml file
+            ET.indent(self.__root)
+            self.__tree.write(self.__path, "UTF-8", True)
     # endregion
 
-    def __word_check(self, word: str, index: int, words_to_remove: tuple) -> bool:
-        """ Check if a word is ok to be inserted in list
-        or if it needs to be removed. 
+    # region: build game dictionaries
+    def __build_dictionary(self, words_to_remove: tuple =()) -> None:
+        """ Build a game word dictionary.
         
-        If it's ok add the first and last two letters of the word
-        to separate sets.
+        Build a filtered set of game words and a set of words
+        that can end the game.
+        Also used for ~removing word(s).
         """
-        
-        if word in words_to_remove:
-            self.__rename_word(index, word)
-            return False
-
-        if len(word) < 3:
-            return False
-        accepted_chars = {
-            char for char in "abcdefghijklmnopqrstuvwxyz"
-            }
-        for char in word:
-            if char not in accepted_chars:
-                return False
-        else:
-            self.__words_start.add(word[:2])
-            self.__words_end.add(word[-2:])
-            return True
-        
-    def __parse_words(self, words_to_remove: tuple =()) -> None:
-        """ Build and filter a set of all words from the input file. """
 
         if words_to_remove:
-            print('Rebuilding dictionary...')
+            print('... Rebuilding dictionary ...')
         else:
-            print('Building dictionary...')
+            print('... Building dictionary ...')
 
-
-        # self.words = set()
-
+        # Use 'range' to get the 'index' for ~removing word(s)
         for index in range(len(self.__root)):
             
-            # Not with 'lower()' to exclude names
+            # Not with 'lower()' method to auto-exclude names
             current_word: str = self.__root[index][1].text
-
+            
             # Strip of '(...)' using regex
             current_word = re.sub(
                 pattern=r" \(.+?\)",
@@ -97,26 +78,28 @@ class WordDictionary:
                 string=current_word
                 )
 
-            # Check length
+            # Pre-check length
             if len(current_word) < 3:
                 continue
 
-            # Replace diacritics
-            current_word = self.__normalize_word(current_word)
+            current_word = self.__replace_diacritics(current_word)
 
-            # If the word contains variations
-            if " / " in current_word:
-                for variation in current_word.split(" / "):
-                    if self.__word_check(variation, index, words_to_remove):
-                        self.words.add(variation)
-            else:
-                if self.__word_check(current_word, index, words_to_remove):
-                    self.words.add(current_word)
+            # Check for word variations
+            for word_variation in current_word.split(" / "):
+                if self.__word_check(word_variation):
+                    if word_variation in words_to_remove:
+                        self.__rename_word(index, word_variation)
+                        self.__words_to_remove.append(word_variation)
+                    else:
+                        self.words.add(word_variation)
+                        self.__words_start.add(word_variation[:2])
+                        self.__words_end.add(word_variation[-2:])
         else:
-            self.__endgame_words()
+            self.__build_endgame_words()
 
-    def __normalize_word(self, word: str) -> str:
-        """ Replace diacritics with normalized characters. """
+    def __replace_diacritics(self, word: str) -> str:
+        """ Replace diacritics with 'normalized' characters. """
+
         diacritics = {
                 "ă": "a",
                 "â": "a",
@@ -128,6 +111,112 @@ class WordDictionary:
                 if diacritic in word:
                     word = word.replace(diacritic, replacement)
         return word
+
+    def __word_check(self, word: str) -> bool:
+        """ Check if a word is ok to be inserted in dictionary. """
+        
+        # Re-check lengh in case is a variation
+        if len(word) < 3:
+            return False
+        
+        # Check if word characters are in the alphabet
+        # Also check and exclude if the word contains big letters (name...)
+        accepted_chars = {
+            char for char in "abcdefghijklmnopqrstuvwxyz"
+            }
+        for char in word:
+            if char not in accepted_chars:
+                return False
+        else:
+            return True
+
+    def __build_endgame_words(self) -> None:
+        """ Create a set of words that can end the game. """
+
+        self.endgame_words = {word for word in self.words if word[-2:] in self.__words_end.difference(self.__words_start)}
+    # endregion
+
+    # region: add/remove words
+    def add_words(self, *words: tuple) -> None:
+        """ Add new word(s) to dictionary. """
+
+        # Find the last element 'id'
+        last_id = int(self.__root[len(self.__root) - 1].attrib["id"])
+
+        timestamp = str(int(time.time()))
+
+        for word in words:
+            # Build new element
+            new_entry = ET.Element("Entry", {"id": str(last_id + 1)})
+            entry_timestamp = ET.SubElement(new_entry, "Timestamp")
+            entry_timestamp.text = timestamp
+            entry_description = ET.SubElement(new_entry, "Description")
+            entry_description.text = word + " (added by fazan)"
+            last_id += 1
+            
+            self.__words_to_add.append(word)
+
+            # Add new element to tree
+            print(f"... Adding '{word}' to dictionary ...")
+            self.__root.append(new_entry)
+
+    def remove_words(self, *words) -> None:
+        """ Pseudo-removes the 'word(s)' and rebuild the dictionary. """
+
+        for word in words:
+            print(f"... Removing '{word}' ...")
+        self.__build_dictionary(words_to_remove= words)
+
+    def __rename_word(self, index: int, word_to_remove: str) -> None:
+        """ Pseudo-removes the 'word_to_remove' from dictionary
+        by renaming it with '__' prefix.
+
+        Preserve the initial description with diacritics and paranthesis.
+        """
+
+        word_split = self.__root[index][1].text.split(" / ")
+        for pos, word in enumerate(word_split):
+            word_parsed = re.sub(
+                pattern=r" \(.+?\)",
+                repl="",
+                string=word
+                )
+            word_parsed = self.__replace_diacritics(word_parsed)
+            if word_parsed == word_to_remove:
+                word_split[pos] = "__" + word
+        else:
+            self.__root[index][1].text = " / ".join(
+                [str(word) for word in word_split]
+                )
+    # endregion
+
+    # region: testing
+    def export_to_file(self, base_dir, type: str ="filtered") -> None:
+        """ Export a filtered on unfiltered word list to txt file.
+        
+        'type' can be 'filtered' or 'unfiltered'.
+        'base_dir' is the 'main.py' directory
+        Export to txt file in '{base_dir}/output' directory.
+        If 'output' directory doesn't exist, it doesn't create it!
+
+        Used for testing.
+        """
+
+        if type.lower() == "filtered":
+            filename = "words_filtered.txt"
+        elif type.lower() == "unfiltered":
+            filename = "words_unfiltered.txt"
+        else:
+            raise ValueError(f"Invalid type: '{type}'")
+
+        file_path = Path(base_dir, 'output', filename)
+
+        print(f"... Exporting to '/output/{filename}' ...")
+        with open(file_path, "w", encoding="utf-8") as file:
+            if filename == "words_filtered.txt":
+                file.write('\n'.join(str(i) for i in self.words))
+            elif filename == "words_unfiltered.txt":
+                file.write('\n'.join(str(i) for i in self.__parse_words_unfiltered()))
 
     def __parse_words_unfiltered(self) -> set:
         """ Build an unfiltered set of all words from the input file. 
@@ -141,98 +230,6 @@ class WordDictionary:
             if len(self.__root[index][1].text) > 2
             }
         return words_unfiltered
+    # endregion
 
-    def export_to_file(self, base_dir, type: str ="filtered") -> None:
-        """ Export a filtered on unfiltered word list to txt file.
-        
-        'type' can be 'filtered' or 'unfiltered'.
-        'base_dir' is the main.py directory
-        Export to txt file in '{base_dir}/output' directory.
-        If 'output' directory doesn't exist, it doesn't create it.
 
-        Only used for testing.
-        """
-
-        if type.lower() == "filtered":
-            filename = "words_filtered.txt"
-        elif type.lower() == "unfiltered":
-            filename = "words_unfiltered.txt"
-        else:
-            raise ValueError(f"Invalid type: {type}")
-
-        file_path = Path(base_dir, 'output', filename)
-
-        with open(file_path, "w", encoding="utf-8") as file:
-            if filename == "words_filtered.txt":
-                file.write('\n'.join(str(i) for i in self.words))
-            elif filename == "words_unfiltered.txt":
-                file.write('\n'.join(str(i) for i in self.__parse_words_unfiltered()))
-
-    def remove_word(self, *words) -> None:
-        """ Pseudo-removes the 'word' and rebuild the dictionary. """
-
-        for word in words:
-            print(f"Removing '{word}'...")
-        self.__parse_words(words_to_remove= words)
-
-        self.__save_xml()
-
-    def __rename_word(self, index: int, word_to_remove: str) -> None:
-        """ Pseudo-removes the 'word_to_remove' from dictionary
-        by renaming it with '__' prefix.
-        """
-
-        if " / " in self.__root[index][1].text:
-            word_split = self.__root[index][1].text.split(" / ")
-            for pos, word in enumerate(word_split):
-                word_normalized = self.__normalize_word(word)
-                if (
-                    word_normalized == word_to_remove or
-                    (" (" in word and
-                    word_normalized.startswith(word_to_remove + " ")
-                    )
-                    ):
-                        word_split[pos] = "__" + word
-            text_to_write = " / ".join([str(word) for word in word_split])
-        else:
-            if "__" not in self.__root[index][1].text:
-                text_to_write = "__" + self.__root[index][1].text
-
-        self.__root[index][1].text = text_to_write
-
-    def add_word(self, word: str) -> None:
-        """ Add new word to dictionary. """
-
-        # Find the last element 'id'
-        elements = self.__root.findall("Entry")
-        last_el_id = int(elements[-1].attrib["id"])
-
-        # Build new element
-        new_entry = ET.Element("Entry", {"id": str(last_el_id + 1)})
-        new_timestamp = ET.SubElement(new_entry, "Timestamp")
-        new_timestamp.text = str(int(time.time()))
-        new_description = ET.SubElement(new_entry, "Description")
-        new_description.text = word + " (user added)"
-
-        # Add new element to xml
-        print(f"Adding {word} to dictionary...")
-        if (
-            ET.iselement(new_entry) &
-            ET.iselement(new_timestamp) &
-            ET.iselement(new_description)
-            ):
-            self.__root.append(new_entry)
-        else:
-            print(f"Error adding '{word}' to dictionary!!!")
-
-        self.__save_xml()
-
-        self.__parse_xml(self.__path)
-        self.__parse_words(words_to_remove= " ")
-
-    def __endgame_words(self) -> None:
-        """ Create a set of words that can end the game. """
-
-        self.endgame_words = {word for word in self.words if word[-2:] in self.__words_end.difference(self.__words_start)}
-
-    
