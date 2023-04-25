@@ -190,22 +190,16 @@ class WordDictionary:
                 )
     # endregion
 
-
-
-
-
-
-
-    # region: file export
+    # region: testing
     def export_to_file(self, base_dir, type: str ="filtered") -> None:
         """ Export a filtered on unfiltered word list to txt file.
         
         'type' can be 'filtered' or 'unfiltered'.
-        'base_dir' is the main.py directory
+        'base_dir' is the 'main.py' directory
         Export to txt file in '{base_dir}/output' directory.
-        If 'output' directory doesn't exist, it doesn't create it.
+        If 'output' directory doesn't exist, it doesn't create it!
 
-        Only used for testing.
+        Used for testing.
         """
 
         if type.lower() == "filtered":
@@ -213,24 +207,17 @@ class WordDictionary:
         elif type.lower() == "unfiltered":
             filename = "words_unfiltered.txt"
         else:
-            raise ValueError(f"Invalid type: {type}")
+            raise ValueError(f"Invalid type: '{type}'")
 
         file_path = Path(base_dir, 'output', filename)
 
+        print(f"... Exporting to '/output/{filename}' ...")
         with open(file_path, "w", encoding="utf-8") as file:
             if filename == "words_filtered.txt":
                 file.write('\n'.join(str(i) for i in self.words))
             elif filename == "words_unfiltered.txt":
                 file.write('\n'.join(str(i) for i in self.__parse_words_unfiltered()))
-    # endregion
 
-
-    
-
-
-
-
-    # region: testing
     def __parse_words_unfiltered(self) -> set:
         """ Build an unfiltered set of all words from the input file. 
         
