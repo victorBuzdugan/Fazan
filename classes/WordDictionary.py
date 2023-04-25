@@ -3,7 +3,6 @@ from pathlib import Path
 import re
 import time
 
-# 5_530
 
 class WordDictionary:
     """ A dictionary of words used in the game. """
