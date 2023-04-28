@@ -33,7 +33,8 @@ class HumanPlayer(Player):
              no_endgame: bool = False) -> str:
         while True:
             word = input(f"Enter a word that starts with '{word_start}' :").lower()
-            if word in dictionary
+            if word in dictionary:
+                pass
 
 
 class AiPlayer(Player):

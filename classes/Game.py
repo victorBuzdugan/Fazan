@@ -36,6 +36,7 @@ class Game:
                             add_word = input(
                                 f"Would you like to add '{current_word}' to the dictionary ('yes' for yes)?: ")
 
+                word_start = "??"
                 player.play(self.round_no, word_start)
             else:
                 self.round_no += 1
