@@ -1,4 +1,6 @@
+from random import choice
 
+from classes.WordDictionary import WordDictionary
 
 class Player:
     """ Player class. """
@@ -10,8 +12,13 @@ class Player:
 
         self.name = name
 
-    def play(self, round_no: int, word_start: str) -> str:
-        pass
+    def play(self,
+             word_start: str,
+             dictionary: WordDictionary,
+             no_endgame: bool =False) -> str:
+        """ Get a verified word from player """
+
+        raise NotImplementedError
 
 
 class HumanPlayer(Player):
@@ -19,15 +26,23 @@ class HumanPlayer(Player):
 
     def __init__(self, name: str) -> None:
         super().__init__(name)
+    
+    def play(self,
+             word_start: str,
+             dictionary: WordDictionary,
+             no_endgame: bool = False) -> str:
+        while True:
+            word = input(f"Enter a word that starts with '{word_start}' :").lower()
+            if word in dictionary
 
 
 class AiPlayer(Player):
     """ AI player class. """
 
-    dificulty: int
+    ai_level: int
 
-    def __init__(self, name: str, dificulty: int) -> None:
+    def __init__(self, name: str, ai_level: int) -> None:
         super().__init__(name)
-        self.dificulty = dificulty
+        self.ai_level = ai_level
 
 

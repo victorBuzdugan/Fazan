@@ -3,20 +3,20 @@ from random import shuffle, choice
 
 from classes.WordDictionary import WordDictionary
 from classes.Game import Game
-from classes.Player import Player, HumanPlayer, AiPlayer
+from classes.Player import HumanPlayer, AiPlayer
 
 
 # INPUT_FILE = "DEXOnline.xml"
 # INPUT_FILE = "DEXOnline_small.xml"
 INPUT_FILE = "DEXOnline_xsmall.xml"
 
+# Create words dictionary
 path = os.path.join("input", INPUT_FILE)
 dictionary = WordDictionary(path)
 
 
-# Get players list from input
 players = []
-# TODO implement dificulty
+
 # AI player
 if input("Play vs computer ('y' for yes)?: ").lower() == "y":
     ai_name = choice(("shaquille.oatmeal", "fast_and_curious",
@@ -24,24 +24,33 @@ if input("Play vs computer ('y' for yes)?: ").lower() == "y":
                 "tinfoilhat", "anonymouse", "crazy_cat_lady",
                 "fluffycookie", "Babushka", "FartinLutherKing",
                 "fatBatman", "ima.robot", "fartoolong"))
-    dificulty = 1
-    players.append(AiPlayer(ai_name, dificulty))
+    while True:
+        ai_level = input("Enter computer level -> 1(easy) ... 10(hard): ")
+        try:
+            ai_level = int(ai_level)
+            if ai_level not in range(1, 11):
+                raise ValueError
+        except ValueError:
+            print(f"'{ai_level}' is not in range of 1...10!")
+        else:
+            break
+    players.append(AiPlayer(ai_name, ai_level))
 
 # Human player(s)
 while True:
-    no_human_players = input("Enter how many 'human' players: ")
+    human_players_no = input("Enter how many 'human' players: ")
     try:
-        no_human_players = int(no_human_players)
-        if not players and no_human_players < 2:
+        human_players_no = int(human_players_no)
+        if not players and human_players_no < 2:
             print("Expected at least 2 'human' players!")
             continue
-        elif players and no_human_players < 1:
+        elif players and human_players_no < 1:
             print("Expected at least 1 'human' player!")
             continue
     except ValueError:
-        print(f"'{no_human_players}' is not a number!")
+        print(f"'{human_players_no}' is not a number!")
     else:
-        for player in range(no_human_players):
+        for player in range(human_players_no):
             name = input(f"Player {player + 1} name: ")
             players.append(HumanPlayer(name))
         break
@@ -51,7 +60,7 @@ game = Game()
 
 
 shuffle(players)
-game.play(players)
+game.play(players, dictionary)
 
 
 x = input("Options: ('q' for quit): ")
