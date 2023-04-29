@@ -17,6 +17,7 @@ class WordDictionary:
     endgame_words: set[str]
     __words_to_add: list[str]
     __words_to_remove: list[str]
+    played_words: set[str]
 
     def __init__(self, path: Path) -> None:
         """ Create a dictionary with filtered words imported from file path. 
@@ -30,6 +31,7 @@ class WordDictionary:
         self.__words_end = set()
         self.__words_to_add = []
         self.__words_to_remove = []
+        self.played_words = set()
         self.__parse_xml(self.__path)
         self.__build_dictionary()
 

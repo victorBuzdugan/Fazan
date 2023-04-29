@@ -27,14 +27,14 @@ if input("Play vs computer ('y' for yes)?: ").lower() == "y":
     while True:
         ai_level = input("Enter computer level -> 1(easy) ... 10(hard): ")
         try:
-            ai_level = int(ai_level)
+            ai_level = float(ai_level)
             if ai_level not in range(1, 11):
                 raise ValueError
         except ValueError:
             print(f"'{ai_level}' is not in range of 1...10!")
         else:
             break
-    players.append(AiPlayer(ai_name, ai_level))
+    players.append(AiPlayer(ai_name, ai_level / 10))
 
 # Human player(s)
 while True:

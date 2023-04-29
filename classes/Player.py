@@ -9,11 +9,13 @@ class Player:
     """ Player class. """
 
     name: str
+    eliminated: bool
 
     def __init__(self, name: str) -> None:
         """ Initialize the player."""
 
         self.name = name
+        self.eliminated = False
 
     def play(self,
              word_start: str,
@@ -35,7 +37,7 @@ class HumanPlayer(Player):
              dictionary: WordDictionary,
              no_endgame: bool = False) -> str:
         while True:
-            word = input(f"\n'{self.name}' enter a word that starts with '{word_start}' ('qq' if you don't know; 'h' for help) :").lower()
+            word = input(f"\n'{self.name}' enter a word that starts with '{word_start}' ('qq' if you don't know; 'h' for help): ").lower()
             if word == "qq":
                 return "remove_player"
             if word == "h":
@@ -48,6 +50,9 @@ class HumanPlayer(Player):
                 continue
             elif not word.startswith(word_start):
                 print(f"'{word}' doesn't starts with '{word_start}'")
+                continue
+            elif word in dictionary.played_words:
+                print(f"'{word}' has allready been played this game!")
                 continue
             elif no_endgame and word in dictionary.endgame_words:
                 print("You can't eliminate a player with the first word!)")
@@ -66,14 +71,39 @@ class HumanPlayer(Player):
                         print(f"... You could have eliminated next player with '{endgame_word}'")
                 return word
 
-
+# TODO implement refuse AI entered word
 class AiPlayer(Player):
     """ AI player class. """
 
-    ai_level: int
+    ai_level: float
 
-    def __init__(self, name: str, ai_level: int) -> None:
+    def __init__(self, name: str, ai_level: float) -> None:
         super().__init__(name)
         self.ai_level = ai_level
+
+    def play(self, word_start: str, dictionary: WordDictionary, no_endgame: bool = False) -> str:
+        if random() > self.ai_level:
+            no_endgame = True
+        for attempt in range(10):
+            if no_endgame:
+                word = dictionary.get_word(word_start)
+                if word in dictionary.endgame_words:
+                    continue
+                else:
+                    break
+            else:
+                word = dictionary.get_endgame_word(word_start)
+                if word == "":
+                    no_endgame = True
+                    continue
+                else:
+                    print("ENDGAME WORD")
+                    break
+        if word == "":
+            print(f"\n'{self.name}' enter a word that starts with '{word_start}': qq")
+            return "remove_player"
+        else:
+            print(f"\n'{self.name}' enter a word that starts with '{word_start}': {word}")
+            return word
 
 
