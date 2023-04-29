@@ -19,27 +19,23 @@ class Game:
         # Generate a start letter
         start_letter = choice("abcdefghijklmnopqrstuvwxyz")
 
-        # TODO implement word start
-
-        while True:
+        # Get word from players
+        while len(players) > 1:
             print(f"\nRound {self.round_no}")
             for player in players:
-                if self.round_no == 1 and player == player[0]:
+                if self.round_no == 1 and player == players[0]:
                     current_word = player.play(start_letter, dictionary, no_endgame=True)
+                else:
+                    current_word = player.play(current_word[-2:], dictionary)
                 
-
-
-                    while True:
-                        current_word = player.play(start_letter, no_endgame=True)
-                        if current_word not in dictionary.words:
-                            print(f"'{current_word}' is not in the dictionary!")
-                            add_word = input(
-                                f"Would you like to add '{current_word}' to the dictionary ('yes' for yes)?: ")
-
-                word_start = "??"
-                player.play(self.round_no, word_start)
+                if current_word == "remove_player":
+                    print(f"\nPlayer '{player.name}' has been eliminated!")
+                    players.remove(player)
             else:
                 self.round_no += 1
-                if not players:
-                    break
+        else:
+            print(f"\nPlayer '{players[0].name}' has won the game!\n")
+            dictionary.save_xml()
+        
+
 

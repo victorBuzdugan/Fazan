@@ -1,6 +1,7 @@
 import xml.etree.ElementTree as ET
 from pathlib import Path
 import re
+
 import time
 
 
@@ -188,6 +189,30 @@ class WordDictionary:
                 [str(word) for word in word_split]
                 )
     # endregion
+
+    # region: get game words
+    def get_word(self, word_start: str) -> str:
+        """ Get a random word from dictionary that starts with 'word_start'. """
+
+        words = {word for word in self.words if word.startswith(word_start)}
+        if words:
+            # Intentionally another level of randomness
+            return words.pop()
+        else:
+            return ""
+    
+    def get_endgame_word(self, word_start: str) -> str:
+        """ Get a random word from endgame words that starts with 'word_start'. """
+
+        words = {word for word in self.endgame_words if word.startswith(word_start)}
+        if words:
+            # Intentionally another level of randomness
+            return words.pop()
+        else:
+            return ""
+    # endregion
+
+
 
     # region: testing
     def export_to_file(self, base_dir, type: str ="filtered") -> None:

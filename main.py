@@ -6,9 +6,9 @@ from classes.Game import Game
 from classes.Player import HumanPlayer, AiPlayer
 
 
-# INPUT_FILE = "DEXOnline.xml"
+INPUT_FILE = "DEXOnline.xml"
 # INPUT_FILE = "DEXOnline_small.xml"
-INPUT_FILE = "DEXOnline_xsmall.xml"
+# INPUT_FILE = "DEXOnline_xsmall.xml"
 
 # Create words dictionary
 path = os.path.join("input", INPUT_FILE)
@@ -58,14 +58,8 @@ while True:
 
 game = Game()
 
-
 shuffle(players)
 game.play(players, dictionary)
 
-
-x = input("Options: ('q' for quit): ")
-
-if x == "q":
-    dictionary.save_xml()
 
 
