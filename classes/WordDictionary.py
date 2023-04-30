@@ -1,25 +1,24 @@
 import xml.etree.ElementTree as ET
-from pathlib import Path
+import os
 import re
-
 import time
 
 
 class WordDictionary:
     """ A dictionary of words used in the game. """
     
-    __path: Path
+    __path: str
     __tree: ET
     __root: ET.Element
     words: set[str]
     __words_start: set[str]
     __words_end: set[str]
     endgame_words: set[str]
-    __words_to_add: list[str]
+    __words_to_add: bool
     __words_to_remove: list[str]
     played_words: set[str]
 
-    def __init__(self, path: Path) -> None:
+    def __init__(self, path: str) -> None:
         """ Create a dictionary with filtered words imported from file path. 
         
         Path - 'path' to the input file including filename and extension
@@ -29,14 +28,15 @@ class WordDictionary:
         self.words = set()
         self.__words_start = set()
         self.__words_end = set()
-        self.__words_to_add = []
+        self.__words_to_add = False
         self.__words_to_remove = []
         self.played_words = set()
         self.__parse_xml(self.__path)
         self.__build_dictionary()
+        self.__export_to_file()
 
     # region: xml related methods
-    def __parse_xml(self, path: Path) -> None:
+    def __parse_xml(self, path: str) -> None:
         """ Parse the xml file. """
         
         print("... Loading xml file ...")
@@ -44,9 +44,11 @@ class WordDictionary:
         self.__root = self.__tree.getroot()
     
     def save_xml(self):
-        """ Write changes to xml file """
+        """ Write changes to xml file. """
 
         if self.__words_to_remove or self.__words_to_add:
+            if self.__words_to_remove:
+                self.remove_words(*self.__words_to_remove)
             print("... Saving dictionary to file ...")
             # Re-format the xml file
             ET.indent(self.__root)
@@ -91,7 +93,6 @@ class WordDictionary:
                 if self.__word_check(word_variation):
                     if word_variation in words_to_remove:
                         self.__rename_word(index, word_variation)
-                        self.__words_to_remove.append(word_variation)
                     else:
                         self.words.add(word_variation)
                         self.__words_start.add(word_variation[:2])
@@ -156,7 +157,7 @@ class WordDictionary:
             entry_description.text = word + " (added by fazan)"
             last_id += 1
             
-            self.__words_to_add.append(word)
+            self.__words_to_add = True
 
             # Add new element to tree
             print(f"... Adding '{word}' to dictionary ...")
@@ -190,6 +191,16 @@ class WordDictionary:
             self.__root[index][1].text = " / ".join(
                 [str(word) for word in word_split]
                 )
+
+    def discard_word(self, word: str, remove: bool =False):
+        """ Remove a word from current game. """
+
+        self.played_words.add(word)
+        self.words.discard(word)
+        self.endgame_words.discard(word)
+        if remove:
+            self.__words_to_remove.append(word)
+            print(f"Removed '{word}' from game")
     # endregion
 
     # region: get game words
@@ -214,10 +225,8 @@ class WordDictionary:
             return ""
     # endregion
 
-
-
     # region: testing
-    def export_to_file(self, base_dir, type: str ="filtered") -> None:
+    def __export_to_file(self, type: str ="filtered") -> None:
         """ Export a filtered on unfiltered word list to txt file.
         
         'type' can be 'filtered' or 'unfiltered'.
@@ -235,7 +244,8 @@ class WordDictionary:
         else:
             raise ValueError(f"Invalid type: '{type}'")
 
-        file_path = Path(base_dir, 'output', filename)
+        file_path = os.path.join('output', filename)
+        file_path = os.path.join('output', filename)
 
         print(f"... Exporting to '/output/{filename}' ...")
         with open(file_path, "w", encoding="utf-8") as file:

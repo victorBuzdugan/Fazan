@@ -55,11 +55,7 @@ while True:
             players.append(HumanPlayer(name))
         break
 
-
 game = Game()
 
 shuffle(players)
 game.play(players, dictionary)
-
-
-

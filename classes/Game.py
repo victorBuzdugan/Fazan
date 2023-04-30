@@ -6,54 +6,56 @@ from classes.Player import Player
 class Game:
     """ Game class """
 
-    round_no: int
-
     def __init__(self) -> None:
         """ Initialize the game. """
+        pass
 
-        self.round_no = 1
-
-    def play(self, players: list[Player], dictionary: WordDictionary) -> None:
+    def play(self,
+             players: list[Player], 
+             dictionary: WordDictionary
+             ) -> None:
         """ Play the game. """
 
         # Generate a start letter
         start_letter = choice("abcdefghijklmnopqrstuvwxyz")
-
+        
+        round_no = 1
         remaining_players = len(players)
 
         # Get word from players
         while remaining_players > 1:
-            print(f"\nRound {self.round_no}")
+            print(f"\nRound {round_no}")
             for player in players:
                 if player.eliminated:
                     continue
-                if (self.round_no == 1 and player == players[0]) or player_removed :
-                    current_word = player.play(start_letter, dictionary, no_endgame=True)
-                    dictionary.played_words.add(current_word)
-                    dictionary.words.discard(current_word)
-                    dictionary.endgame_words.discard(current_word)
+                if (round_no == 1 and player == players[0]) or player_removed:
+                    current_word = player.play(start_letter,
+                                               dictionary,
+                                               no_endgame=True)
                     player_removed = False
                 else:
                     current_word = player.play(current_word[-2:], dictionary)
-                    dictionary.played_words.add(current_word)
-                    dictionary.words.discard(current_word)
-                    dictionary.endgame_words.discard(current_word)
                 
                 if current_word == "remove_player":
                     print(f"\nPlayer '{player.name}' has been eliminated!")
                     player.eliminated = True
                     remaining_players -= 1
-                    player_removed = True
                     if remaining_players == 1:
                         break
+                    else:
+                        player_removed = True
+                        start_letter = choice("abcdefghijklmnopqrstuvwxyz")
+                else:
+                    dictionary.discard_word(current_word)
             else:
-                self.round_no += 1
+                round_no += 1
         else:
             for player in players:
-                if player.eliminated == True:
-                    continue
-                else:
-                    print(f"\nPlayer '{player.name}' has won the game!\n")
+                if player.eliminated == False:
+                    print(
+                        f"\nPlayer '{player.name}' has won the game "
+                        f"in {round_no} rounds!\n"
+                        )
                     break
             dictionary.save_xml()
         
