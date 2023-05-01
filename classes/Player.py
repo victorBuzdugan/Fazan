@@ -3,6 +3,7 @@ from random import random
 from classes.WordDictionary import WordDictionary
 
 PROB_SUGGEST_WORD = 0.7
+SMART_AI_TRESHOLD = 0.6
 
 class Player:
     """ Player class. """
@@ -19,7 +20,7 @@ class Player:
     def play(self,
              word_start: str,
              dictionary: WordDictionary,
-             no_endgame: bool =False) -> str:
+             no_endgame_input: bool =False) -> str:
         """ Get a verified word from player. """
 
         raise NotImplementedError
@@ -34,7 +35,7 @@ class HumanPlayer(Player):
     def play(self,
              word_start: str,
              dictionary: WordDictionary,
-             no_endgame: bool = False
+             no_endgame_input: bool = False
              ) -> str:
         while True:
             word = input(
@@ -57,7 +58,7 @@ class HumanPlayer(Player):
             elif word in dictionary.played_words:
                 print(f"'{word}' has allready been played this game!")
                 continue
-            elif no_endgame and word in dictionary.endgame_words:
+            elif no_endgame_input and word in dictionary.endgame_words:
                 print("You can't eliminate a player with the first word!)")
                 continue
             elif word not in dictionary.words:
@@ -70,12 +71,14 @@ class HumanPlayer(Player):
                     dictionary.add_words(word)
                     return word
             else:
-                if random() > PROB_SUGGEST_WORD and not no_endgame:
-                    if dictionary.get_endgame_word(word_start):
-                        endgame_word = dictionary.get_endgame_word(word_start)
+                # Randomly suggest an endgame word
+                if random() > PROB_SUGGEST_WORD and not no_endgame_input:
+                    suggest_word = dictionary.get_word(word_start, False)
+                    if (suggest_word and
+                        suggest_word in dictionary.endgame_words):
                         print(
                             f"... You could have eliminated next player "
-                            f"with '{endgame_word}'"
+                            f"with '{suggest_word}'"
                             )
                 return word
 
@@ -87,42 +90,43 @@ class AiPlayer(Player):
     def __init__(self, name: str, ai_level: float) -> None:
         super().__init__(name)
         self.ai_level = ai_level
+        if self.ai_level >= SMART_AI_TRESHOLD:
+            self.smart = True
+        else:
+            self.smart = False
 
     def play(self,
              word_start: str,
              dictionary: WordDictionary,
-             no_endgame: bool = False
+             no_endgame_input: bool = False
              ) -> str:
+
+        # Randomly try to end the game
+        if no_endgame_input or random() > self.ai_level:
+            no_endgame = True
+        else:
+            no_endgame = False
+
         while True:
-            if random() > self.ai_level:
-                no_endgame = True
-            for attempt in range(10):
-                if no_endgame:
-                    word = dictionary.get_word(word_start)
-                    if word in dictionary.endgame_words:
-                        continue
-                    else:
-                        break
-                else:
-                    word = dictionary.get_endgame_word(word_start)
-                    if word == "":
-                        no_endgame = True
-                        continue
-                    else:                        
-                        break
-            if word == "":
+            word = dictionary.get_word(word_start, no_endgame, self.smart)
+            if (word == "" or
+                (no_endgame_input == True and word in dictionary.endgame_words)
+                ):
                 print(f"\n'{self.name}' enter a word that starts "
-                      f"with '{word_start}': qq")
+                        f"with '{word_start}': qq")
+                if word != "":
+                    print("I can't find a word that doesn't end the game!")
                 return "remove_player"
             else:
                 print(f"\n'{self.name}' enter a word that starts "
-                      f"with '{word_start}': {word}")
+                        f"with '{word_start}': {word}")
                 if word in dictionary.endgame_words:
                     print(
                         f"There are no words in dictionary with {word[-2:]}!")
                 remove_word = input(
-                    f"Type 'no' to remove '{word}' from dictionary: ").lower()
-                if remove_word == "no":
+                    f"Type 'remove' to remove '{word}' from dictionary: ").lower()
+                if remove_word == "remove":
                     dictionary.discard_word(word, remove=True)
+                    continue
                 else:
                     return word

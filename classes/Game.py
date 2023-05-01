@@ -31,7 +31,7 @@ class Game:
                 if (round_no == 1 and player == players[0]) or player_removed:
                     current_word = player.play(start_letter,
                                                dictionary,
-                                               no_endgame=True)
+                                               no_endgame_input=True)
                     player_removed = False
                 else:
                     current_word = player.play(current_word[-2:], dictionary)

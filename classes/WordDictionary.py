@@ -33,7 +33,6 @@ class WordDictionary:
         self.played_words = set()
         self.__parse_xml(self.__path)
         self.__build_dictionary()
-        self.__export_to_file()
 
     # region: xml related methods
     def __parse_xml(self, path: str) -> None:
@@ -70,8 +69,12 @@ class WordDictionary:
             print('... Building dictionary ...')
 
         # Use 'range' to get the 'index' for ~removing word(s)
-        for index in range(len(self.__root)):
+        xml_len = len(self.__root)
+        for index in range(xml_len):
             
+            if index == int(xml_len / 2):
+                print("... Halfway there ...")
+
             # Not with 'lower()' method to auto-exclude names
             current_word: str = self.__root[index][1].text
             
@@ -140,8 +143,12 @@ class WordDictionary:
     # endregion
 
     # region: add/remove words
-    def add_words(self, *words: tuple) -> None:
+    def add_words(self, *words: tuple[str]) -> None:
         """ Add new word(s) to dictionary. """
+
+        # Add word(s) to game
+        for word in words:
+            self.played_words.add(word)
 
         # Find the last element 'id'
         last_id = int(self.__root[len(self.__root) - 1].attrib["id"])
@@ -200,27 +207,56 @@ class WordDictionary:
         self.endgame_words.discard(word)
         if remove:
             self.__words_to_remove.append(word)
-            print(f"Removed '{word}' from game")
+            print(f"... Removed '{word}' from game ...")
     # endregion
 
     # region: get game words
-    def get_word(self, word_start: str) -> str:
+    def get_word(self,
+                 word_start: str,
+                 no_endgame: bool =True,
+                 smart_ai: bool =False
+                 ) -> str:
         """ Get a random word from dictionary that starts with 'word_start'. """
 
+        # All the words that start with 'word_start'
         words = {word for word in self.words if word.startswith(word_start)}
-        if words:
-            # Intentionally another level of randomness
-            return words.pop()
-        else:
-            return ""
-    
-    def get_endgame_word(self, word_start: str) -> str:
-        """ Get a random word from endgame words that starts with 'word_start'. """
+        # Words with endings wich doesn't remove next player
+        not_endgame_words = words.difference(self.endgame_words)
+        # Words with endings wich removes next player
+        endgame_words = words.intersection(self.endgame_words)
+        # Words with endings wich doesn't remove next player,
+        # but also leaves no endgame words to him
+        if smart_ai:
+            found_word = False
+            for not_endgame_word in not_endgame_words:
+                if found_word == True:
+                    break
+                for endgame_word in self.endgame_words:
+                    if not_endgame_word[-2:] != endgame_word[:2]:
+                        smart_ai_word = not_endgame_word
+                        found_word = True
+                        break
+            else:
+                smart_ai_word = ""
 
-        words = {word for word in self.endgame_words if word.startswith(word_start)}
         if words:
-            # Intentionally another level of randomness
-            return words.pop()
+            if no_endgame:
+                # Try to get a word that doesn't end the game
+                if smart_ai and smart_ai_word:
+                    return smart_ai_word                
+                if not_endgame_words:
+                    return not_endgame_words.pop()
+                else:
+                    return words.pop()
+            else:
+                # Try to get a word that ends the game
+                if endgame_words:
+                    return endgame_words.pop()
+                else:
+                    if smart_ai and smart_ai_word:
+                        return smart_ai_word
+                    else:
+                        return words.pop()
         else:
             return ""
     # endregion
