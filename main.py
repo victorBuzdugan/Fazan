@@ -34,7 +34,7 @@ if input("Play vs computer ('y' for yes)?: ").lower() == "y":
             print(f"'{ai_level}' is not in range of 1...10!")
         else:
             break
-    players.append(AiPlayer(ai_name, ai_level / 10))
+    players.append(AiPlayer(name = ai_name, ai_level = ai_level))
 
 # Human player(s)
 while True:

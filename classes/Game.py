@@ -6,10 +6,6 @@ from classes.Player import Player
 class Game:
     """ Game class """
 
-    def __init__(self) -> None:
-        """ Initialize the game. """
-        pass
-
     def play(self,
              players: list[Player], 
              dictionary: WordDictionary
@@ -58,6 +54,3 @@ class Game:
                         )
                     break
             dictionary.save_xml()
-        
-
-

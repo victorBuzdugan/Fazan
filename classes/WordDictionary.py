@@ -121,7 +121,7 @@ class WordDictionary:
     def __word_check(self, word: str) -> bool:
         """ Check if a word is ok to be inserted in dictionary. """
         
-        # Re-check lengh in case is a variation
+        # Re-check length in case is a variation
         if len(word) < 3:
             return False
         
@@ -181,7 +181,7 @@ class WordDictionary:
         """ Pseudo-removes the 'word_to_remove' from dictionary
         by renaming it with '__' prefix.
 
-        Preserve the initial description with diacritics and paranthesis.
+        Preserve the initial description with diacritics and parenthesis.
         """
 
         word_split = self.__root[index][1].text.split(" / ")
