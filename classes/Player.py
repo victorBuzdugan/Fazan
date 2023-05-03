@@ -1,26 +1,25 @@
+from dataclasses import dataclass, field
 from random import random
 
 from classes.WordDictionary import WordDictionary
 
-PROB_SUGGEST_WORD = 0.7
-SMART_AI_TRESHOLD = 0.6
+""" Probability to suggest an ending word
+From 1 (high probability) to 10 (no suggestion)"""
+PROB_SUGGEST_WORD: float = 7.0
 
+""" If the level of computer is greater or equal than this value then
+computer player will try to use words that have endings that don't leave
+playable end game words to the next player """
+SMART_AI_THRESHOLD: float = 6.0
+
+@dataclass
 class Player:
     """ Player class. """
 
     name: str
-    eliminated: bool
+    eliminated: bool = False
 
-    def __init__(self, name: str) -> None:
-        """ Initialize the player."""
-
-        self.name = name
-        self.eliminated = False
-
-    def play(self,
-             word_start: str,
-             dictionary: WordDictionary,
-             no_endgame_input: bool =False) -> str:
+    def play(self):
         """ Get a verified word from player. """
 
         raise NotImplementedError
@@ -29,9 +28,6 @@ class Player:
 class HumanPlayer(Player):
     """ Human player class. """
 
-    def __init__(self, name: str) -> None:
-        super().__init__(name)
-    
     def play(self,
              word_start: str,
              dictionary: WordDictionary,
@@ -56,7 +52,7 @@ class HumanPlayer(Player):
                 print(f"'{word}' doesn't starts with '{word_start}'")
                 continue
             elif word in dictionary.played_words:
-                print(f"'{word}' has allready been played this game!")
+                print(f"'{word}' has already been played this game!")
                 continue
             elif no_endgame_input and word in dictionary.endgame_words:
                 print("You can't eliminate a player with the first word!)")
@@ -72,7 +68,7 @@ class HumanPlayer(Player):
                     return word
             else:
                 # Randomly suggest an endgame word
-                if random() > PROB_SUGGEST_WORD and not no_endgame_input:
+                if random() > (PROB_SUGGEST_WORD / 10) and not no_endgame_input:
                     suggest_word = dictionary.get_word(word_start, False)
                     if (suggest_word and
                         suggest_word in dictionary.endgame_words):
@@ -82,18 +78,17 @@ class HumanPlayer(Player):
                             )
                 return word
 
+@dataclass
 class AiPlayer(Player):
     """ AI player class. """
 
-    ai_level: float
+    ai_level: float = 5.0
+    smart: bool = field(default=False, init=False)
 
-    def __init__(self, name: str, ai_level: float) -> None:
-        super().__init__(name)
-        self.ai_level = ai_level
-        if self.ai_level >= SMART_AI_TRESHOLD:
-            self.smart = True
-        else:
-            self.smart = False
+    def __post_init__(self):
+        if self.ai_level >= SMART_AI_THRESHOLD:
+            self.smart = True 
+        self.ai_level: float = self.ai_level / 10
 
     def play(self,
              word_start: str,
@@ -124,7 +119,8 @@ class AiPlayer(Player):
                     print(
                         f"There are no words in dictionary with {word[-2:]}!")
                 remove_word = input(
-                    f"Type 'remove' to remove '{word}' from dictionary: ").lower()
+                    f"Type 'remove' to remove '{word}' from dictionary: "
+                    ).lower()
                 if remove_word == "remove":
                     dictionary.discard_word(word, remove=True)
                     continue
