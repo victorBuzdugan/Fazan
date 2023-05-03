@@ -220,11 +220,11 @@ class WordDictionary:
 
         # All the words that start with 'word_start'
         words = {word for word in self.words if word.startswith(word_start)}
-        # Words with endings wich doesn't remove next player
+        # Words with endings which doesn't remove next player
         not_endgame_words = words.difference(self.endgame_words)
-        # Words with endings wich removes next player
+        # Words with endings which removes next player
         endgame_words = words.intersection(self.endgame_words)
-        # Words with endings wich doesn't remove next player,
+        # Words with endings which doesn't remove next player,
         # but also leaves no endgame words to him
         if smart_ai:
             found_word = False
@@ -232,10 +232,11 @@ class WordDictionary:
                 if found_word == True:
                     break
                 for endgame_word in self.endgame_words:
-                    if not_endgame_word[-2:] != endgame_word[:2]:
-                        smart_ai_word = not_endgame_word
-                        found_word = True
+                    if not_endgame_word[-2:] == endgame_word[:2]:
                         break
+                else:
+                    smart_ai_word = not_endgame_word
+                    break
             else:
                 smart_ai_word = ""
 
@@ -303,5 +304,3 @@ class WordDictionary:
             }
         return words_unfiltered
     # endregion
-
-
