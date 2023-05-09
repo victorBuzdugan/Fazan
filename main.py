@@ -1,9 +1,11 @@
+""" Main game file. """
+
 import os
 from random import shuffle, choice
 
-from classes.WordDictionary import WordDictionary
-from classes.Game import Game
-from classes.Player import HumanPlayer, AiPlayer
+from classes.word_dictionary import WordDictionary
+from classes.game import Game
+from classes.player import HumanPlayer, AiPlayer
 
 
 INPUT_FILE = "DEXOnline.xml"
@@ -44,7 +46,7 @@ while True:
         if not players and human_players_no < 2:
             print("Expected at least 2 'human' players!")
             continue
-        elif players and human_players_no < 1:
+        if players and human_players_no < 1:
             print("Expected at least 1 'human' player!")
             continue
     except ValueError:

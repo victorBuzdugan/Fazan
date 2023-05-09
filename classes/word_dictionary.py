@@ -1,3 +1,5 @@
+""" Word Dictionary class module. """
+
 import xml.etree.ElementTree as ET
 import os
 import re
@@ -6,7 +8,7 @@ import time
 
 class WordDictionary:
     """ A dictionary of words used in the game. """
-    
+
     __path: str
     __tree: ET
     __root: ET.Element
@@ -37,11 +39,11 @@ class WordDictionary:
     # region: xml related methods
     def __parse_xml(self, path: str) -> None:
         """ Parse the xml file. """
-        
+
         print("... Loading xml file ...")
         self.__tree = ET.parse(path)
         self.__root = self.__tree.getroot()
-    
+
     def save_xml(self):
         """ Write changes to xml file. """
 
@@ -71,13 +73,13 @@ class WordDictionary:
         # Use 'range' to get the 'index' for ~removing word(s)
         xml_len = len(self.__root)
         for index in range(xml_len):
-            
+
             if index == int(xml_len / 2):
                 print("... Halfway there ...")
 
             # Not with 'lower()' method to auto-exclude names
             current_word: str = self.__root[index][1].text
-            
+
             # Strip of '(...)' using regex
             current_word = re.sub(
                 pattern=r" \(.+?\)",
@@ -100,8 +102,8 @@ class WordDictionary:
                         self.words.add(word_variation)
                         self.__words_start.add(word_variation[:2])
                         self.__words_end.add(word_variation[-2:])
-        else:
-            self.__build_endgame_words()
+
+        self.__build_endgame_words()
 
     def __replace_diacritics(self, word: str) -> str:
         """ Replace diacritics with 'normalized' characters. """
@@ -114,22 +116,20 @@ class WordDictionary:
                 "ț": "t"
             }
         for diacritic, replacement in diacritics.items():
-                if diacritic in word:
-                    word = word.replace(diacritic, replacement)
+            if diacritic in word:
+                word = word.replace(diacritic, replacement)
         return word
 
     def __word_check(self, word: str) -> bool:
         """ Check if a word is ok to be inserted in dictionary. """
-        
+
         # Re-check length in case is a variation
         if len(word) < 3:
             return False
-        
+
         # Check if word characters are in the alphabet
         # Also check and exclude if the word contains big letters (name...)
-        accepted_chars = {
-            char for char in "abcdefghijklmnopqrstuvwxyz"
-            }
+        accepted_chars = set("abcdefghijklmnopqrstuvwxyz")
         for char in word:
             if char not in accepted_chars:
                 return False
@@ -139,7 +139,9 @@ class WordDictionary:
     def __build_endgame_words(self) -> None:
         """ Create a set of words that can end the game. """
 
-        self.endgame_words = {word for word in self.words if word[-2:] in self.__words_end.difference(self.__words_start)}
+        self.endgame_words = {
+            word for word in self.words
+            if word[-2:] in self.__words_end.difference(self.__words_start)}
     # endregion
 
     # region: add/remove words
@@ -163,7 +165,7 @@ class WordDictionary:
             entry_description = ET.SubElement(new_entry, "Description")
             entry_description.text = word + " (added by fazan)"
             last_id += 1
-            
+
             self.__words_to_add = True
 
             # Add new element to tree
@@ -229,7 +231,7 @@ class WordDictionary:
         if smart_ai:
             found_word = False
             for not_endgame_word in not_endgame_words:
-                if found_word == True:
+                if found_word is True:
                     break
                 for endgame_word in self.endgame_words:
                     if not_endgame_word[-2:] == endgame_word[:2]:
@@ -244,7 +246,7 @@ class WordDictionary:
             if no_endgame:
                 # Try to get a word that doesn't end the game
                 if smart_ai and smart_ai_word:
-                    return smart_ai_word                
+                    return smart_ai_word
                 if not_endgame_words:
                     return not_endgame_words.pop()
                 else:
@@ -263,7 +265,7 @@ class WordDictionary:
     # endregion
 
     # region: testing
-    def __export_to_file(self, type: str ="filtered") -> None:
+    def __export_to_file(self, export_type: str ="filtered") -> None:
         """ Export a filtered on unfiltered word list to txt file.
         
         'type' can be 'filtered' or 'unfiltered'.
@@ -274,12 +276,12 @@ class WordDictionary:
         Used for testing.
         """
 
-        if type.lower() == "filtered":
+        if export_type.lower() == "filtered":
             filename = "words_filtered.txt"
-        elif type.lower() == "unfiltered":
+        elif export_type.lower() == "unfiltered":
             filename = "words_unfiltered.txt"
         else:
-            raise ValueError(f"Invalid type: '{type}'")
+            raise ValueError(f"Invalid type: '{export_type}'")
 
         file_path = os.path.join('output', filename)
         file_path = os.path.join('output', filename)
@@ -298,7 +300,7 @@ class WordDictionary:
         """
 
         words_unfiltered = {
-            self.__root[index][1].text.lower() 
+            self.__root[index][1].text.lower()
             for index in range(len(self.__root))
             if len(self.__root[index][1].text) > 2
             }

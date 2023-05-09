@@ -1,15 +1,17 @@
+""" Player class module. """
+
 from dataclasses import dataclass, field
 from random import random
 
-from classes.WordDictionary import WordDictionary
+from classes.word_dictionary import WordDictionary
 
-""" Probability to suggest an ending word
-From 1 (high probability) to 10 (no suggestion)"""
+# Probability to suggest an ending word
+# From 1 (high probability) to 10 (no suggestion)
 PROB_SUGGEST_WORD: float = 7.0
 
-""" If the level of computer is greater or equal than this value then
-computer player will try to use words that have endings that don't leave
-playable end game words to the next player """
+# If the level of computer is greater or equal than this value then
+# computer player will try to use words that have endings that don't leave
+# playable end game words to the next player
 SMART_AI_THRESHOLD: float = 6.0
 
 @dataclass
@@ -19,7 +21,11 @@ class Player:
     name: str
     eliminated: bool = False
 
-    def play(self):
+    def play(self,
+             word_start: str,
+             dictionary: WordDictionary,
+             no_endgame_input: bool = False
+             ) -> str:
         """ Get a verified word from player. """
 
         raise NotImplementedError
@@ -87,7 +93,7 @@ class AiPlayer(Player):
 
     def __post_init__(self):
         if self.ai_level >= SMART_AI_THRESHOLD:
-            self.smart = True 
+            self.smart = True
         self.ai_level: float = self.ai_level / 10
 
     def play(self,
@@ -97,15 +103,12 @@ class AiPlayer(Player):
              ) -> str:
 
         # Randomly try to end the game
-        if no_endgame_input or random() > self.ai_level:
-            no_endgame = True
-        else:
-            no_endgame = False
+        no_endgame = no_endgame_input or random() > self.ai_level
 
         while True:
             word = dictionary.get_word(word_start, no_endgame, self.smart)
             if (word == "" or
-                (no_endgame_input == True and word in dictionary.endgame_words)
+                (no_endgame_input is True and word in dictionary.endgame_words)
                 ):
                 print(f"\n'{self.name}' enter a word that starts "
                         f"with '{word_start}': qq")

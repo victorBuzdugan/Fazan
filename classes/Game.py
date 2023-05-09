@@ -1,20 +1,22 @@
+""" Game class module. """
+
 from random import choice
 
-from classes.WordDictionary import WordDictionary
-from classes.Player import Player
+from classes.word_dictionary import WordDictionary
+from classes.player import Player
 
 class Game:
     """ Game class """
 
     def play(self,
-             players: list[Player], 
+             players: list[Player],
              dictionary: WordDictionary
              ) -> None:
         """ Play the game. """
 
         # Generate a start letter
         start_letter = choice("abcdefghijklmnopqrstuvwxyz")
-        
+
         round_no = 1
         remaining_players = len(players)
 
@@ -31,7 +33,7 @@ class Game:
                     player_removed = False
                 else:
                     current_word = player.play(current_word[-2:], dictionary)
-                
+
                 if current_word == "remove_player":
                     print(f"\nPlayer '{player.name}' has been eliminated!")
                     player.eliminated = True
@@ -45,12 +47,13 @@ class Game:
                     dictionary.discard_word(current_word)
             else:
                 round_no += 1
-        else:
-            for player in players:
-                if player.eliminated == False:
-                    print(
-                        f"\nPlayer '{player.name}' has won the game "
-                        f"in {round_no} rounds!\n"
-                        )
-                    break
-            dictionary.save_xml()
+
+        # Game ended; find the winner
+        for player in players:
+            if player.eliminated is False:
+                print(
+                    f"\nPlayer '{player.name}' has won the game "
+                    f"in {round_no} rounds!\n"
+                    )
+                break
+        dictionary.save_xml()
