@@ -21,8 +21,8 @@ class WordDictionary:
     played_words: set[str]
 
     def __init__(self, path: str) -> None:
-        """ Create a dictionary with filtered words imported from file path. 
-        
+        """ Create a dictionary with filtered words imported from file path.
+
         Path - 'path' to the input file including filename and extension
         """
 
@@ -57,9 +57,9 @@ class WordDictionary:
     # endregion
 
     # region: build game dictionaries
-    def __build_dictionary(self, words_to_remove: tuple =()) -> None:
+    def __build_dictionary(self, words_to_remove: tuple = ()) -> None:
         """ Build a game word dictionary.
-        
+
         Build a filtered set of game words and a set of words
         that can end the game.
         Also used for ~removing word(s).
@@ -177,7 +177,7 @@ class WordDictionary:
 
         for word in words:
             print(f"... Removing '{word}' ...")
-        self.__build_dictionary(words_to_remove= words)
+        self.__build_dictionary(words_to_remove=words)
 
     def __rename_word(self, index: int, word_to_remove: str) -> None:
         """ Pseudo-removes the 'word_to_remove' from dictionary
@@ -201,7 +201,7 @@ class WordDictionary:
                 [str(word) for word in word_split]
                 )
 
-    def discard_word(self, word: str, remove: bool =False):
+    def discard_word(self, word: str, remove: bool = False):
         """ Remove a word from current game. """
 
         self.played_words.add(word)
@@ -215,10 +215,10 @@ class WordDictionary:
     # region: get game words
     def get_word(self,
                  word_start: str,
-                 no_endgame: bool =True,
-                 smart_ai: bool =False
+                 no_endgame: bool = True,
+                 smart_ai: bool = False
                  ) -> str:
-        """ Get a random word from dictionary that starts with 'word_start'. """
+        """Get a random word from dictionary that starts with 'word_start'."""
 
         # All the words that start with 'word_start'
         words = {word for word in self.words if word.startswith(word_start)}
@@ -265,9 +265,9 @@ class WordDictionary:
     # endregion
 
     # region: testing
-    def __export_to_file(self, export_type: str ="filtered") -> None:
+    def __export_to_file(self, export_type: str = "filtered") -> None:
         """ Export a filtered on unfiltered word list to txt file.
-        
+
         'type' can be 'filtered' or 'unfiltered'.
         'base_dir' is the 'main.py' directory
         Export to txt file in '{base_dir}/output' directory.
@@ -294,8 +294,8 @@ class WordDictionary:
                 file.write('\n'.join(str(i) for i in self.__parse_words_unfiltered()))
 
     def __parse_words_unfiltered(self) -> set:
-        """ Build an unfiltered set of all words from the input file. 
-        
+        """ Build an unfiltered set of all words from the input file.
+
         Only used for testing.
         """
 

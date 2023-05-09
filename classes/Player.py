@@ -14,6 +14,7 @@ PROB_SUGGEST_WORD: float = 7.0
 # playable end game words to the next player
 SMART_AI_THRESHOLD: float = 6.0
 
+
 @dataclass
 class Player:
     """ Player class. """
@@ -74,15 +75,17 @@ class HumanPlayer(Player):
                     return word
             else:
                 # Randomly suggest an endgame word
-                if random() > (PROB_SUGGEST_WORD / 10) and not no_endgame_input:
+                if (random() > (PROB_SUGGEST_WORD / 10)
+                        and not no_endgame_input):
                     suggest_word = dictionary.get_word(word_start, False)
                     if (suggest_word and
-                        suggest_word in dictionary.endgame_words):
+                            suggest_word in dictionary.endgame_words):
                         print(
                             f"... You could have eliminated next player "
                             f"with '{suggest_word}'"
                             )
                 return word
+
 
 @dataclass
 class AiPlayer(Player):
@@ -108,16 +111,16 @@ class AiPlayer(Player):
         while True:
             word = dictionary.get_word(word_start, no_endgame, self.smart)
             if (word == "" or
-                (no_endgame_input is True and word in dictionary.endgame_words)
-                ):
+                    (no_endgame_input is True and
+                     word in dictionary.endgame_words)):
                 print(f"\n'{self.name}' enter a word that starts "
-                        f"with '{word_start}': qq")
+                      f"with '{word_start}': qq")
                 if word != "":
                     print("I can't find a word that doesn't end the game!")
                 return "remove_player"
             else:
                 print(f"\n'{self.name}' enter a word that starts "
-                        f"with '{word_start}': {word}")
+                      f"with '{word_start}': {word}")
                 if word in dictionary.endgame_words:
                     print(
                         f"There are no words in dictionary with {word[-2:]}!")

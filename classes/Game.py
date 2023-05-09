@@ -5,6 +5,7 @@ from random import choice
 from classes.word_dictionary import WordDictionary
 from classes.player import Player
 
+
 class Game:
     """ Game class """
 

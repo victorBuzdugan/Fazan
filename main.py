@@ -22,10 +22,10 @@ players = []
 # AI player
 if input("Play vs computer ('y' for yes)?: ").lower() == "y":
     ai_name = choice(("shaquille.oatmeal", "fast_and_curious",
-                "casanova", "YellowSnowman", "unfinished_sentenc",
-                "tinfoilhat", "anonymouse", "crazy_cat_lady",
-                "fluffycookie", "Babushka", "FartinLutherKing",
-                "fatBatman", "ima.robot", "fartoolong"))
+                      "casanova", "YellowSnowman", "unfinished_sentenc",
+                      "tinfoilhat", "anonymouse", "crazy_cat_lady",
+                      "fluffycookie", "Babushka", "FartinLutherKing",
+                      "fatBatman", "ima.robot", "fartoolong"))
     while True:
         ai_level = input("Enter computer level -> 1(easy) ... 10(hard): ")
         try:
@@ -36,7 +36,7 @@ if input("Play vs computer ('y' for yes)?: ").lower() == "y":
             print(f"'{ai_level}' is not in range of 1...10!")
         else:
             break
-    players.append(AiPlayer(name = ai_name, ai_level = ai_level))
+    players.append(AiPlayer(name=ai_name, ai_level=ai_level))
 
 # Human player(s)
 while True:
