@@ -4,3 +4,4 @@ __pycache__/
 Cuvinte.txt
 DEXOnline*.xml
 /output
+.pytest_cache
